@@ -1,12 +1,19 @@
 import mongoose from "mongoose";
 
-export const connectDB = async () =>{
-    try{
-        await mongoose.connect(process.env.MONGO_URI);
+export const connectDB = async () => {
+  const mongoUri = process.env.MONGO_URI;
 
-        console.log("MONGODB CONNECTED SUCCESSFULLY!")
-    }catch(error){
-        console.error("error connect to mongoDB", error);
-        process.exit(1) // exit with failure
-    }
+  if (!mongoUri) {
+    throw new Error(
+      "MONGO_URI is not defined. Set it in Railway environment variables.",
+    );
+  }
+
+  try {
+    await mongoose.connect(mongoUri);
+    console.log("MONGODB CONNECTED SUCCESSFULLY!");
+  } catch (error) {
+    console.error("error connect to mongoDB", error);
+    throw error;
+  }
 };
