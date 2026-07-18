@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import { fileURLToPath } from "url";
 
 import notesRoutes from "./routes/noteRoutes.js";
 import { connectDB } from "./config/db.js";
@@ -13,13 +14,15 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.join(__dirname, "..", "..", "Frontend", "dist");
 
 //middleware
 if (process.env.NODE_ENV !== "production") {
-    app.use(
+  app.use(
     cors({
-        origin: "http://localhost:5173",
+      origin: "http://localhost:5173",
     }),
   ); // this middleware will allow cross origin requests
 }
@@ -35,20 +38,20 @@ app.use(rateLimiter); // this middleware will limit the number of requests to th
 app.use("/api/notes", notesRoutes);
 
 if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.use(express.static(frontendDistPath));
 }
 
 app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  res.sendFile(path.join(frontendDistPath, "index.html"));
 });
 
 // Connect to MongoDB first, then start the server
 connectDB()
-    .then(() => {
+  .then(() => {
     app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port ${PORT}`);
     });
-    })
-    .catch((err) => {
+  })
+  .catch((err) => {
     console.error("Failed to start server due to DB connection error:", err);
-    });
+  });
